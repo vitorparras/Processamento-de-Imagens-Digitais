@@ -140,7 +140,3 @@ plt.show()
 #
 # A função filtro_passa_baixa_butterworth implementa esse filtro. O parâmetro 'ordem' define a "suavidade" da transição
 # entre as frequências preservadas e as eliminadas. Um valor maior de ordem resulta em uma transição mais acentuada.
-#
-# Para comparar os resultados, utilizamos o mesmo raio nos dois filtros e variamos a ordem do filtro Butterworth.
-# Você pode experimentar diferentes valores de raio e ordem para ver qual combinação fornece os melhores resultados
-# em termos de minimização da presença de ruído.

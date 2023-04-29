@@ -1,0 +1,56 @@
+# Ruído
+4. Dada a imagem(e) com e sem a presença de ruído gaussiano(exercício 3), compare-as por meio das métricas erro máximo, erro médio absoluto, erro médio quadrático, raiz do erro médio quadrático, erro médio quadrático normalizado e coeficiente de Jaccard para identificar os níveis de similaridades existentes.
+
+i) Observando os valores obtidos, é possível definir algum comportamento padrão entre as métricas a partir dos ruídos aplicados em cada imagem?
+
+ii) Neste cenário, qual métrica permite evidenciar melhor a degradação da imagem em razão da presença de ruído? Justifique sua resposta.
+
+
+# Carregando bibliotecas
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+import math
+import cv2
+from sklearn import metrics
+
+# Carrega imagem e converte pra numpy array
+image_e=Image.open('./images/e.jpg')
+image_e=np.asarray(image_e)
+
+# Gerando ruido gaussiano de mesma dimensão da imagem
+gauss_noise=np.zeros((256, 256), dtype=np.uint8)
+cv2.randn(gauss_noise, 128, 20)
+gauss_noise=(gauss_noise*0.5).astype(np.uint8)
+
+# Adicionando ruido à imagem
+gn_img=cv2.add(image_e, gauss_noise)
+
+# Exibindo, imagem original, ruido e imagem com ruido
+fig=plt.figure(dpi=300)
+
+fig.add_subplot(1, 3, 1)
+plt.imshow(image_e, cmap='gray')
+plt.axis("off")
+plt.title("Original")
+
+fig.add_subplot(1, 3, 2)
+plt.imshow(gauss_noise, cmap='gray')
+plt.axis("off")
+plt.title("Gaussian Noise")
+
+fig.add_subplot(1, 3, 3)
+plt.imshow(gn_img, cmap='gray')
+plt.axis("off")
+plt.title("Combined")
+
+
+# Exibindo Métricas
+print('Erro médio Absoluto:', metrics.mean_absolute_error(
+    image_e.flatten(), gn_img.flatten()))
+print('Erro Médio Quadrático:', metrics.mean_squared_error(
+    image_e.flatten(), gn_img.flatten()))
+print('Raiz do Erro Médio Quadrático:', math.sqrt(
+    metrics.mean_squared_error(image_e.flatten(), gn_img.flatten())))
+print('Coeficiente de Jaccard:', metrics.jaccard_score(
+    image_e.flatten(), gn_img.flatten(), average = "micro"))
