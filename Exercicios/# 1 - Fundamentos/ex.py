@@ -1,5 +1,6 @@
 # region Importações
 
+import os
 from PIL import Image
 import numpy as np
 import math
@@ -15,14 +16,15 @@ import random
 # amostragem e a profundidade de cada imagem.
 
 # region funções
+caminho = os.path.abspath(os.path.dirname(__file__)) + "\\"
 
 
 def ExibeInfoImagem(nome):
     # Abre a imagem usando a função "open" da biblioteca Pillow
-    img = Image.open(nome)
+    img = Image.open(caminho + nome)
 
     # Exibe a taxa de amostragem da imagem
-    taxa_amostragem = img.info.get('dpi')
+    taxa_amostragem = img.info.get("dpi")
     print(f"Taxa de amostragem {nome}: {taxa_amostragem[0]} dpi")
 
     # Exibe a profundidade da imagem
@@ -39,13 +41,13 @@ def GeraImagem(matriz, nome):
     matriz_ampliada = np.repeat(np.repeat(matriz, 16, axis=0), 16, axis=1)
 
     # Cria uma nova imagem com 256 pixels de largura e 256 de altura
-    img = Image.new('L', (256, 256))
+    img = Image.new("L", (256, 256))
 
     # Cria uma imagem a partir da matriz redimensionada
-    img = Image.fromarray(matriz_ampliada.astype(np.uint8)).convert('L')
+    img = Image.fromarray(matriz_ampliada.astype(np.uint8)).convert("L")
 
     # Salva a imagem em um arquivo PNG
-    img.save(nome)
+    img.save(caminho + nome)
 
 
 def MudaValorMatriz(matriz, inicio_linha, fim_linha, inicio_coluna, fim_coluna, valor):
@@ -56,6 +58,7 @@ def MudaValorMatriz(matriz, inicio_linha, fim_linha, inicio_coluna, fim_coluna, 
             matriz[i][j] = valor
     return matriz
 
+
 # endregion
 
 # region imagem A
@@ -64,7 +67,7 @@ def MudaValorMatriz(matriz, inicio_linha, fim_linha, inicio_coluna, fim_coluna, 
 print("\n\n\n\n\n\n\n\n\n\n\n\n")
 
 imagem_A = np.ones((16, 16)) * 200
-GeraImagem(imagem_A, 'Imagem_A.bmp')
+GeraImagem(imagem_A, "Imagem_A.bmp")
 
 # endregion
 
@@ -77,7 +80,7 @@ parte_inferior = np.ones((8, 16)) * 150
 # Empilha as duas matrizes verticalmente para criar uma matriz 8x8 dividida horizontalmente
 imagem_B = np.vstack((parte_superior, parte_inferior))
 
-GeraImagem(imagem_B, 'Imagem_B.bmp')
+GeraImagem(imagem_B, "Imagem_B.bmp")
 
 # endregion
 
@@ -100,7 +103,7 @@ imagem_C = MudaValorMatriz(imagem_C, 2, 5, 9, 13, 150)
 imagem_C = MudaValorMatriz(imagem_C, 10, 13, 2, 6, 200)
 imagem_C = MudaValorMatriz(imagem_C, 10, 13, 9, 13, 200)
 
-GeraImagem(imagem_C, 'Imagem_C.bmp')
+GeraImagem(imagem_C, "Imagem_C.bmp")
 
 # endregion
 
@@ -113,7 +116,7 @@ matriz4 = np.ones((8, 8)) * 250
 
 imagem_D = np.block([[matriz1, matriz2], [matriz3, matriz4]])
 
-GeraImagem(imagem_D, 'Imagem_D.bmp')
+GeraImagem(imagem_D, "Imagem_D.bmp")
 
 # endregion
 
@@ -127,24 +130,24 @@ valor = 100
 
 # Percorre as células da matriz e atribui os valores de acordo com a regra definida
 for i in range(imagem_E.shape[0]):
-    for j in range(imagem_E .shape[1]):
+    for j in range(imagem_E.shape[1]):
         imagem_E[i, j] = valor
         valor += 10
 
 # amplia a matriz
 matriz_ampliada = np.repeat(np.repeat(imagem_E, 4, axis=0), 4, axis=1)
 
-GeraImagem(matriz_ampliada, 'Imagem_E.bmp')
+GeraImagem(matriz_ampliada, "Imagem_E.bmp")
 
 # endregion
 
 # region Exibi informações das Imagens
 
-ExibeInfoImagem('Imagem_A.bmp')
-ExibeInfoImagem('Imagem_B.bmp')
-ExibeInfoImagem('Imagem_C.bmp')
-ExibeInfoImagem('Imagem_D.bmp')
-ExibeInfoImagem('Imagem_E.bmp')
+ExibeInfoImagem("Imagem_A.bmp")
+ExibeInfoImagem("Imagem_B.bmp")
+ExibeInfoImagem("Imagem_C.bmp")
+ExibeInfoImagem("Imagem_D.bmp")
+ExibeInfoImagem("Imagem_E.bmp")
 
 # endregion
 
@@ -169,6 +172,7 @@ def achar_raiz(x, rotulos):
         x = rotulos[x]
     return x
 
+
 # Função para unir dois componentes conexos
 
 
@@ -183,6 +187,7 @@ def uniao(x, y, rotulos):
             rotulos[raiz_y] = raiz_x
         else:
             rotulos[raiz_x] = raiz_y
+
 
 # Algoritmo de Hoshen-Kopelman para rotular componentes conexos
 
@@ -225,6 +230,7 @@ def hoshen_kopelman(matriz):
 
     return matriz
 
+
 # Função para processar a imagem e obter os componentes conexos rotulados
 
 
@@ -240,7 +246,7 @@ def processar_imagem(imagem):
 
 def Informacoes_componente_imagem(imagem):
     # Carrega a imagem
-    imagem_E = Image.open(imagem)
+    imagem_E = Image.open(caminho + imagem)
     imagem_E_array = np.array(imagem_E)
 
     # Processa a imagem e obtém os componentes conexos rotulados
@@ -252,18 +258,19 @@ def Informacoes_componente_imagem(imagem):
     rotulos_unicos = np.unique(imagem_rotulada)
     n_clusters = len(rotulos_unicos) - 1
     print(f"Número total de componentes conexos: {n_clusters}")
-    print("\n\n****************************************************************************************")
+    print(
+        "\n\n****************************************************************************************"
+    )
 
 
 if __name__ == "__main__":
-
     Informacoes_componente_imagem("Imagem_A.bmp")
     Informacoes_componente_imagem("Imagem_B.bmp")
     Informacoes_componente_imagem("Imagem_C.bmp")
     Informacoes_componente_imagem("Imagem_D.bmp")
 
     # Carrega a imagem
-    imagem_E = Image.open("Imagem_E.bmp")
+    imagem_E = Image.open(caminho + "Imagem_E.bmp")
     imagem_E_array = np.array(imagem_E)
 
     # Processa a imagem e obtém os componentes conexos rotulados
@@ -275,7 +282,9 @@ if __name__ == "__main__":
     rotulos_unicos = np.unique(imagem_rotulada)
     n_clusters = len(rotulos_unicos) - 1
     print(f"Número total de componentes conexos: {n_clusters}")
-    print("\n\n****************************************************************************************")
+    print(
+        "\n\n****************************************************************************************"
+    )
 
     # Escolhe dois componentes conexos aleatoriamente
     componente1 = random.choice(rotulos_unicos[1:])
@@ -297,7 +306,9 @@ if __name__ == "__main__":
     D8 = max(np.abs(centro1[0] - centro2[0]), np.abs(centro1[1] - centro2[1]))
 
     # Imprime as distâncias calculadas
-    print("\n\n****************************************************************************************")
+    print(
+        "\n\n****************************************************************************************"
+    )
     print(f"Distância Euclidiana (DE) entre os centros dos componentes: {DE}")
     print(f"Distância D4 entre os centros dos componentes: {D4}")
     print(f"Distância D8 entre os centros dos componentes: {D8}")

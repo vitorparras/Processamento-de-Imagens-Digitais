@@ -28,6 +28,7 @@ import os
 def converte_para_cinza(imagem):
     return cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
 
+
 # Função para aplicar o ruído gaussiano na imagem
 
 
@@ -36,6 +37,7 @@ def aplica_ruido_gaussiano(imagem, media=0, desvio_padrao=10):
     imagem_com_ruido = np.clip(imagem + ruido, 0, 255).astype(np.uint8)
     return imagem_com_ruido
 
+
 # Função para calcular a DFT e retornar o espectro de Fourier com o deslocamento da origem
 
 
@@ -43,6 +45,7 @@ def calcula_dft(imagem):
     dft = np.fft.fft2(imagem)
     dft_shift = np.fft.fftshift(dft)
     return dft_shift
+
 
 # Função para aplicar o filtro passa-baixa ideal
 
@@ -63,6 +66,7 @@ def filtro_passa_baixa_ideal(dft_shift, raio):
 
     # Multiplicar a matriz da DFT deslocada pela máscara, eliminando as frequências fora do círculo
     return mascara * dft_shift
+
 
 # Função para aplicar o filtro passa-baixa Butterworth
 
@@ -101,7 +105,7 @@ def calcula_idft(dft_shift):
 
 # Carregar a imagem
 caminho_atual = os.path.abspath(os.path.dirname(__file__))
-imagem = cv2.imread(caminho_atual+'\\exercicio2.png')
+imagem = cv2.imread(caminho_atual + "\\exercicio2.png")
 
 # Converter a imagem para níveis de cinza
 imagem_cinza = converte_para_cinza(imagem)
@@ -121,20 +125,20 @@ imagem_reconstruida_ideal = calcula_idft(dft_filtrado_ideal)
 imagem_reconstruida_butterworth = calcula_idft(dft_filtrado_butterworth)
 
 # Exibir as imagens e os espectros de Fourier
-plt.subplot(331), plt.imshow(imagem_cinza, cmap='gray')
-plt.title('Imagem Original'), plt.xticks([]), plt.yticks([])
-plt.subplot(332), plt.imshow(imagem_com_ruido, cmap='gray')
-plt.title('Imagem com Ruído'), plt.xticks([]), plt.yticks([])
-plt.subplot(333), plt.imshow(np.log(1 + np.abs(dft_shift)), cmap='gray')
-plt.title('Espectro de Fourier'), plt.xticks([]), plt.yticks([])
-plt.subplot(334), plt.imshow(imagem_reconstruida_ideal, cmap='gray')
-plt.title('Filtragem Ideal'), plt.xticks([]), plt.yticks([])
-plt.subplot(335), plt.imshow(imagem_reconstruida_butterworth, cmap='gray')
-plt.title('Filtragem Butterworth'), plt.xticks([]), plt.yticks([])
+plt.subplot(331), plt.imshow(imagem_cinza, cmap="gray")
+plt.title("Imagem Original"), plt.xticks([]), plt.yticks([])
+plt.subplot(332), plt.imshow(imagem_com_ruido, cmap="gray")
+plt.title("Imagem com Ruído"), plt.xticks([]), plt.yticks([])
+plt.subplot(333), plt.imshow(np.log(1 + np.abs(dft_shift)), cmap="gray")
+plt.title("Espectro de Fourier"), plt.xticks([]), plt.yticks([])
+plt.subplot(334), plt.imshow(imagem_reconstruida_ideal, cmap="gray")
+plt.title("Filtragem Ideal"), plt.xticks([]), plt.yticks([])
+plt.subplot(335), plt.imshow(imagem_reconstruida_butterworth, cmap="gray")
+plt.title("Filtragem Butterworth"), plt.xticks([]), plt.yticks([])
 
 plt.show()
 
-# Neste exemplo, utilizamos o filtro passa-baixa Butterworth.
+#
 # O filtro passa-baixa Butterworth é mais suave que o filtro ideal, e sua resposta em frequência é mais suave,
 # o que pode resultar em uma melhor performance para eliminar ruídos.
 #

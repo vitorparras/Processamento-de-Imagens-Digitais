@@ -1,4 +1,3 @@
-
 # ex 4
 #
 # Crie um programa para gerar discretamente máscaras 3x3, 5x5 e 7x7, representativas de filtros
@@ -20,18 +19,22 @@ def gerar_mascara_gaussiana(tamanho):
 
     # Crie a matriz do filtro gaussiano usando o produto externo
     # Produto externo é o produto de cada elemento da linha_pascal por todos os elementos da mesma linha
-    filtro_gaussiano = [[linha_pascal[i] * linha_pascal[j]
-                         for j in range(tamanho)] for i in range(tamanho)]
+    filtro_gaussiano = [
+        [linha_pascal[i] * linha_pascal[j] for j in range(tamanho)]
+        for i in range(tamanho)
+    ]
 
     # Normalize a matriz para que a soma de todos os elementos seja 1
     soma_total = sum(linha_pascal) ** 2
     filtro_gaussiano_normalizado = [
-        [elemento / soma_total for elemento in linha] for linha in filtro_gaussiano]
+        [elemento / soma_total for elemento in linha] for linha in filtro_gaussiano
+    ]
 
     # Calcule o desvio padrão
     media = sum(linha_pascal) / tamanho
-    variancia = sum([(linha_pascal[i] - media) **
-                    2 for i in range(tamanho)]) / (tamanho - 1)
+    variancia = sum([(linha_pascal[i] - media) ** 2 for i in range(tamanho)]) / (
+        tamanho - 1
+    )
     desvio_padrao = math.sqrt(variancia)
 
     return filtro_gaussiano_normalizado, desvio_padrao
@@ -44,9 +47,11 @@ mascara_7x7, desvio_padrao_7x7 = gerar_mascara_gaussiana(7)
 
 print("Máscara 3x3:\n", mascara_3x3)
 print("Desvio Padrão 3x3:", desvio_padrao_3x3)
+print("\n\n")
 
 print("\nMáscara 5x5:\n", mascara_5x5)
 print("Desvio Padrão 5x5:", desvio_padrao_5x5)
+print("\n\n")
 
 print("\nMáscara 7x7:\n", mascara_7x7)
 print("Desvio Padrão 7x7:", desvio_padrao_7x7)

@@ -11,12 +11,12 @@ import matplotlib.pyplot as plt
 
 
 # Lista de nomes de arquivos de imagens
-image_files = ['\\frutas.bmp', '\\mammogram.bmp', '\\Moon.bmp', '\\polem.bmp']
+image_files = ["\\frutas.bmp", "\\mammogram.bmp", "\\Moon.bmp", "\\polem.bmp"]
+caminho = os.path.abspath(os.path.dirname(__file__)) + "\\"
 
 for file in image_files:
     # Carregar imagem com PIL
-    caminho = os.path.abspath(os.path.dirname(__file__))+file
-    pil_image = Image.open(caminho).convert('L')
+    pil_image = Image.open(caminho + file).convert("L")
 
     # Converter para array do NumPy e então para imagem OpenCV
     img = np.array(pil_image)
@@ -31,13 +31,9 @@ for file in image_files:
     # Desenhar os histogramas e as imagens
     plt.figure(figsize=(10, 10))
 
-    plt.subplot(221), plt.imshow(
-        img, cmap='gray'), plt.title('Imagem Original')
-    plt.subplot(222), plt.imshow(
-        equ, cmap='gray'), plt.title('Imagem Equalizada')
-    plt.subplot(223), plt.plot(
-        hist_before), plt.title('Histograma Original')
-    plt.subplot(224), plt.plot(hist_after), plt.title(
-        'Histograma Equalizado')
+    plt.subplot(221), plt.imshow(img, cmap="gray"), plt.title("Imagem Original")
+    plt.subplot(222), plt.imshow(equ, cmap="gray"), plt.title("Imagem Equalizada")
+    plt.subplot(223), plt.plot(hist_before), plt.title("Histograma Original")
+    plt.subplot(224), plt.plot(hist_after), plt.title("Histograma Equalizado")
 
     plt.show()
