@@ -23,130 +23,92 @@
 import os
 import cv2
 import numpy as np
-from skimage.feature import local_binary_pattern
-from skimage.feature.texture import graycomatrix, graycoprops
-from scipy import ndimage
-from scipy.optimize import curve_fit
-from PIL import Image
+from skimage import feature
+from scipy import stats
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from PIL import Image
+from sklearn.preprocessing import LabelEncoder
 
-# Caminhos para suas imagens
+
+def calcular_recursos_haralick(imagem, d=1, theta=0):
+    glcm = feature.graycomatrix(imagem, [d], [theta], 256, symmetric=True, normed=True)
+    contraste = feature.graycoprops(glcm, "contrast")[0, 0]
+    segundo_momento_angular = feature.graycoprops(glcm, "ASM")[0, 0]
+    entropia = stats.entropy(glcm.ravel())
+    return segundo_momento_angular, entropia, contraste
+
+
+def calcular_recursos_lbp(imagem, P=8, R=1):
+    lbp = feature.local_binary_pattern(imagem, P, R, method="uniform")
+    (hist, _) = np.histogram(lbp.ravel(), bins=np.arange(0, P + 3), range=(0, P + 2))
+    hist = hist.astype("float")
+    hist /= hist.sum() + 1e-7
+    return hist.mean()
+
+
+def boxcount(Z, k):
+    S = np.add.reduceat(
+        np.add.reduceat(Z, np.arange(0, Z.shape[0], k), axis=0),
+        np.arange(0, Z.shape[1], k),
+        axis=1,
+    )
+    return len(np.where((S > 0) & (S < k * k))[0])
+
+
+def calcular_dimensao_fractal(imagem, threshold=0.9):
+    imagem = imagem < threshold
+
+    p = min(imagem.shape)
+    escalas = 2 ** np.arange(13, -1, -1)
+
+    contagens = []
+    for escala in escalas:
+        contagens.append(boxcount(imagem, escala))
+
+    coeficientes = np.polyfit(np.log(escalas), np.log(contagens), 1)
+    return coeficientes[0]
+
+
+def processar_imagem(caminho_imagem):
+    image_pil = Image.open(caminho_imagem)
+    image = np.array(image_pil)
+    imagem = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    asm, entropia, contraste = calcular_recursos_haralick(imagem)
+    lbp = calcular_recursos_lbp(imagem)
+    df = calcular_dimensao_fractal(imagem)
+    return [asm, entropia, contraste, lbp, df]
+
+
 caminho = os.path.abspath(os.path.dirname(__file__)) + "\\"
 
-caminhos = [
+caminhos_para_suas_imagens = [
     caminho + "R0_caso1.JPG",
     caminho + "R0_caso2.JPG",
     caminho + "R3_caso1.JPG",
     caminho + "R3_caso2.JPG",
 ]
 
+# E estes com os rótulos correspondentes
+rotulos_de_suas_imagens = ["R01", "R02", "R31", "R32"]
 
-# Função para calcular características de Haralick
-def calcular_recursos_haralick(imagem):
-    glcm = graycomatrix(imagem, [1], [0], 256, symmetric=True, normed=True)
-    segundo_momento = graycoprops(glcm, "ASM")[0, 0]
-    contraste = graycoprops(glcm, "contrast")[0, 0]
-    entropia = -np.sum(glcm * np.log2(glcm + np.finfo(float).eps))
-    return segundo_momento, entropia, contraste
+# Codificar rótulos como números
+le = LabelEncoder()
+rotulos_codificados = le.fit_transform(rotulos_de_suas_imagens)
 
+recursos_imagens = [processar_imagem(img) for img in caminhos_para_suas_imagens]
+recursos_imagens = np.array(recursos_imagens)
 
-# Função para calcular LBP
-def calcular_lbp(imagem):
-    lbp = local_binary_pattern(imagem, 8, 1, method="uniform")
-    hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, 10), density=True)
-    return hist
-
-
-# Função para calcular dimensão fractal
-def calcular_dimensao_fractal(imagem):
-    def boxcount(imagem, k):
-        S = np.add.reduceat(
-            np.add.reduceat(imagem, np.arange(0, imagem.shape[0], k), axis=0),
-            np.arange(0, imagem.shape[1], k),
-            axis=1,
-        )
-        return len(np.where((S > 0) & (S < k * k))[0])
-
-    imagem = imagem > 0
-    p = min(imagem.shape)
-    n = 2 ** np.floor(np.log(p) / np.log(2))
-    n = int(np.log(n) / np.log(2))
-    sizes = 2 ** np.arange(n, 1, -1)
-    counts = []
-    for size in sizes:
-        counts.append(boxcount(imagem, size))
-    coeficientes = np.polyfit(np.log(sizes), np.log(counts), 1)
-    return coeficientes[0], counts[0], counts[1]
-
-
-# Função para criar vetor de características
-def vetor_de_caracteristicas(imagem):
-    segundo_momento, entropia, contraste = calcular_recursos_haralick(imagem)
-    lbp = calcular_lbp(imagem)
-    df, df_iteracao1, df_iteracao2 = calcular_dimensao_fractal(imagem)
-    return (
-        [segundo_momento, entropia, contraste]
-        + lbp.tolist()
-        + [df, df_iteracao1, df_iteracao2]
-    )
-
-
-# Função para processar todas as imagens
-def processar_imagens(caminhos):
-    caracteristicas = []
-    for caminho in caminhos:
-        image_pil = Image.open(caminho)
-        image = np.array(image_pil)
-        imagem = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        caracteristicas.append(vetor_de_caracteristicas(imagem))
-    return caracteristicas
-
-
-caracteristicas = processar_imagens(caminhos)
-
-
-# Função para analisar as diferenças nos descritores
-def analisar_descritores(caracteristicas):
-    caracteristicas = np.array(caracteristicas)
-    diferenca_media = np.abs(
-        np.mean(caracteristicas[:2, :], axis=0)
-        - np.mean(caracteristicas[2:, :], axis=0)
-    )
-    descritores = (
-        ["segundo momento angular", "entropia", "contraste"]
-        + [f"LBP{i}" for i in range(1, 9)]
-        + ["DF", "DF iteração 1", "DF iteração 2"]
-    )
-    for descritor, diferenca in zip(descritores, diferenca_media):
-        print(f"{descritor}: {diferenca}")
-
-
-analisar_descritores(caracteristicas)
-
-
-# Função para plotar gráfico tridimensional dos descritores
-def plotar_descritores_3d(caracteristicas, descritores_indices):
-    caracteristicas = np.array(caracteristicas)
-
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection="3d")
-
-    for i, caracteristicas_imagem in enumerate(caracteristicas):
-        ax.scatter(
-            caracteristicas_imagem[descritores_indices[0]],
-            caracteristicas_imagem[descritores_indices[1]],
-            caracteristicas_imagem[descritores_indices[2]],
-            label=f"Imagem {i+1}",
-        )
-
-    ax.set_xlabel("Descritor 1")
-    ax.set_ylabel("Descritor 2")
-    ax.set_zlabel("Descritor 3")
-    ax.legend()
-    plt.show()
-
-
-# Exemplo de uso da função
-# Os índices 0, 1, 2 correspondem ao segundo momento angular, entropia e contraste respectivamente
-plotar_descritores_3d(caracteristicas, [0, 1, 2])
+fig = plt.figure()
+ax = fig.add_subplot(111, projection="3d")
+ax.scatter(
+    recursos_imagens[:, 0],
+    recursos_imagens[:, 1],
+    recursos_imagens[:, 2],
+    c=rotulos_codificados,
+)
+ax.set_xlabel("Segundo Momento Angular")
+ax.set_ylabel("Entropia")
+ax.set_zlabel("Contraste")
+plt.show()
